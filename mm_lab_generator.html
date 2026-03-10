@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M&M Lab Random Distribution Generator</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #7c3aed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1, h2, h3 { line-height: 1.2; }
+    h1 { margin: 0 0 8px; }
+    .subtitle { color: var(--muted); margin-bottom: 20px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.98rem;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #374151;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.98rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f3f4f6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.92rem;
+      border: 1px solid rgba(0,0,0,0.08);
+      font-weight: 600;
+    }
+    .Yellow { background: #fde68a; }
+    .Green  { background: #86efac; }
+    .Blue   { background: #93c5fd; }
+    .Brown  { background: #d6b38a; }
+    .Orange { background: #fdba74; }
+    .Red    { background: #fca5a5; }
+    .small { font-size: 0.92rem; color: var(--muted); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      .wrap { max-width: none; padding: 0; }
+      .card { box-shadow: none; break-inside: avoid; }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>M&amp;M Lab Random Distribution Generator</h1>
+    <div class="subtitle">
+      Refresh the page or click <strong>Generate New Results</strong> to get a new virtual bag and two new sampling experiments.
+    </div>
+
+    <div class="card">
+      <h2>What this page does</h2>
+      <p>
+        This page creates one virtual set of <strong>40</strong> M&amp;Ms, records the color counts, then simulates:
+      </p>
+      <ol>
+        <li><strong>24 ordered pairs with replacement</strong></li>
+        <li><strong>24 ordered pairs without replacement within each pair</strong> (both candies returned before the next pair)</li>
+      </ol>
+      <p class="small">
+        Default color mix used for the virtual bag: Blue 24%, Orange 20%, Green 16%, Yellow 14%, Red 13%, Brown 13%.
+      </p>
+      <div class="controls">
+        <button id="regenBtn">Generate New Results</button>
+        <button class="secondary" onclick="window.print()">Print / Save PDF</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Population: 40 M&amp;Ms</h2>
+      <div id="populationPills" class="pill-row"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Color</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="countTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>24 Ordered Pairs: With Replacement</h2>
+        <p class="small">For each pair, the first candy is replaced before the second is drawn.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Trial</th>
+              <th>Ordered Pair</th>
+            </tr>
+          </thead>
+          <tbody id="withReplacementBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>24 Ordered Pairs: Without Replacement</h2>
+        <p class="small">Within a pair, the first candy is not replaced before the second draw. After the pair is recorded, both candies are returned.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Trial</th>
+              <th>Ordered Pair</th>
+            </tr>
+          </thead>
+          <tbody id="withoutReplacementBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Teacher note / GitHub note</h2>
+      <p class="small">
+        This is a self-contained HTML file with plain JavaScript and no external libraries. It can be hosted as-is on GitHub Pages.
+        Each page load generates a fresh dataset in the student’s browser.
+      </p>
+      <p class="small mono" id="seedInfo"></p>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = ["Yellow", "Green", "Blue", "Brown", "Orange", "Red"];
+
+    // Approximate milk-chocolate M&M color distribution used to generate the virtual bag.
+    const WEIGHTS = {
+      Yellow: 0.14,
+      Green: 0.16,
+      Blue: 0.24,
+      Brown: 0.13,
+      Orange: 0.20,
+      Red: 0.13
+    };
+
+    function mulberry32(seed) {
+      return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function sampleWeightedColor(rng) {
+      const r = rng();
+      let cumulative = 0;
+      for (const color of COLORS) {
+        cumulative += WEIGHTS[color];
+        if (r < cumulative) return color;
+      }
+      return COLORS[COLORS.length - 1];
+    }
+
+    function makeBag(size, rng) {
+      const bag = [];
+      for (let i = 0; i < size; i++) {
+        bag.push(sampleWeightedColor(rng));
+      }
+      return bag;
+    }
+
+    function countColors(bag) {
+      const counts = Object.fromEntries(COLORS.map(c => [c, 0]));
+      for (const candy of bag) counts[candy]++;
+      return counts;
+    }
+
+    function drawOne(bag, rng) {
+      const idx = Math.floor(rng() * bag.length);
+      return { value: bag[idx], index: idx };
+    }
+
+    function generatePairsWithReplacement(bag, n, rng) {
+      const pairs = [];
+      for (let i = 0; i < n; i++) {
+        const first = drawOne(bag, rng).value;
+        const second = drawOne(bag, rng).value;
+        pairs.push([first, second]);
+      }
+      return pairs;
+    }
+
+    function generatePairsWithoutReplacementWithinPair(bag, n, rng) {
+      const pairs = [];
+      for (let i = 0; i < n; i++) {
+        const firstDraw = drawOne(bag, rng);
+        const remaining = bag.slice();
+        remaining.splice(firstDraw.index, 1);
+        const second = drawOne(remaining, rng).value;
+        pairs.push([firstDraw.value, second]);
+      }
+      return pairs;
+    }
+
+    function renderCounts(counts) {
+      const body = document.getElementById("countTableBody");
+      body.innerHTML = "";
+      let total = 0;
+      for (const color of COLORS) {
+        const tr = document.createElement("tr");
+        const tdColor = document.createElement("td");
+        const tdCount = document.createElement("td");
+        tdColor.textContent = color;
+        tdCount.textContent = counts[color];
+        tr.appendChild(tdColor);
+        tr.appendChild(tdCount);
+        body.appendChild(tr);
+        total += counts[color];
+      }
+      const totalRow = document.createElement("tr");
+      totalRow.innerHTML = `<th>Total</th><th>${total}</th>`;
+      body.appendChild(totalRow);
+    }
+
+    function renderPills(counts) {
+      const container = document.getElementById("populationPills");
+      container.innerHTML = "";
+      for (const color of COLORS) {
+        const span = document.createElement("span");
+        span.className = `pill ${color}`;
+        span.textContent = `${color}: ${counts[color]}`;
+        container.appendChild(span);
+      }
+    }
+
+    function renderPairs(tbodyId, pairs) {
+      const body = document.getElementById(tbodyId);
+      body.innerHTML = "";
+      pairs.forEach((pair, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${i + 1}</td><td>(${pair[0]}, ${pair[1]})</td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    function generateAll() {
+      const seed = Math.floor(Date.now() % 4294967295);
+      const rng = mulberry32(seed);
+
+      const bag = makeBag(40, rng);
+      const counts = countColors(bag);
+      const withReplacement = generatePairsWithReplacement(bag, 24, rng);
+      const withoutReplacement = generatePairsWithoutReplacementWithinPair(bag, 24, rng);
+
+      renderCounts(counts);
+      renderPills(counts);
+      renderPairs("withReplacementBody", withReplacement);
+      renderPairs("withoutReplacementBody", withoutReplacement);
+      document.getElementById("seedInfo").textContent = `Generated in-browser from seed ${seed}.`;
+    }
+
+    document.getElementById("regenBtn").addEventListener("click", generateAll);
+    generateAll();
+  </script>
+</body>
+</html>
